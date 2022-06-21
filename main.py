@@ -1,5 +1,6 @@
 """We create an interactive simulation of a random connection model"""
 from sys import exit
+import os
 import datetime
 
 import numpy as np
@@ -14,6 +15,10 @@ grey = pygame.Color(125, 125, 125)
 #        for some hypothetical 16x9 window.
 
 if __name__ == "__main__":
+
+    if not os.path.exists('pics'):
+        os.mkdir('pics')
+
     pygame.display.init()
     disp_size = (1280, 720)
 
