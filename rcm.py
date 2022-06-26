@@ -54,6 +54,16 @@ class RCM:
     def get_p_simp(self):
         return np.round(self.p_cur, 2)
 
+    def update_lambda(self, new_lambda):
+        """Updates lambda based on given value"""
+        if new_lambda is not None:
+            self.lambda_cur = new_lambda
+
+    def update_p(self, new_p):
+        """Updates p based on given value"""
+        if new_p is not None:
+            self.p_cur = new_p
+
     def reshuffle_edges(self):
         """Resamples all edges"""
         self.connection_matrix = npr.random(size=(self.N, self.N))

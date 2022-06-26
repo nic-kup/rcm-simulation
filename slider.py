@@ -29,6 +29,7 @@ class HorizontalSlider:
         return self.length * (self.cur_value - self.min_a) / (self.max_a - self.min_a)
 
     def draw(self):
+        """Draws slider"""
         pygame.draw.rect(
             self.screen, grey, pygame.Rect(self.loc_x, self.loc_y - 5, self.length, 10)
         )
@@ -96,3 +97,13 @@ class VerticalSlider:
                 self.loc_x - 20, self.loc_y + self.length - self.rel_y - 5, 40, 10
             ),
         )
+
+    def full_update(self, mouse_pos):
+        """Given mouseclick updates slider"""
+        if (np.abs(self.loc_x - mouse_pos[0]) < 20) and (
+            np.abs(self.loc_y - mouse_pos[1] + self.length / 2.0)
+            < self.length * 0.5 + 20.0
+        ):
+            self.update_value_loc(mouse_pos[1])
+            return self.cur_value
+        return None

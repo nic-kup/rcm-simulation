@@ -43,22 +43,12 @@ if __name__ == "__main__":
     my_rcm.p_cur = p_slider.cur_value
 
     while RUNNING:
-        screen.fill(
-            (
-                255,
-                255,
-                255,
-            )
-        )
+        screen.fill((255, 255, 255))
 
         if pygame.mouse.get_pressed()[0] != 0:
             pos = pygame.mouse.get_pos()
-            if np.abs(lambda_slider.loc_x - pos[0]) < 20:
-                lambda_slider.update_value_loc(pos[1])
-                my_rcm.lambda_cur = lambda_slider.cur_value
-            if np.abs(p_slider.loc_x - pos[0]) < 20:
-                p_slider.update_value_loc(pos[1])
-                my_rcm.p_cur = p_slider.cur_value
+            my_rcm.update_lambda(lambda_slider.full_update(pos))
+            my_rcm.update_p(p_slider.full_update(pos))
 
         keys = pygame.key.get_pressed()  # checking pressed keys
         if keys[pygame.K_p]:
@@ -74,7 +64,7 @@ if __name__ == "__main__":
         lambda_slider.draw()
         p_slider.draw()
         my_rcm.draw()
-
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 RUNNING = False
@@ -96,7 +86,6 @@ if __name__ == "__main__":
                     my_rcm.reshuffle_all()
 
         pygame.display.update()
-
         pygame.event.clear()
 
     pygame.quit()
