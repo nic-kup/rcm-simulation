@@ -11,17 +11,18 @@ blue = pygame.Color(40, 40, 200)
 class RCM:
     """Generates an RCM with draw functionallity"""
 
-    def __init__(self, loc_x=0, loc_y=0, scale=60):
+    def __init__(self, loc_x=0, loc_y=0, scale=20):
         """Initializes RCM"""
         self.screen = None
         self.scale = scale
         self.loc_x = loc_x
         self.loc_y = loc_y
-        self.WIDTH = 15
-        self.HEIGHT = 10
+        self.WIDTH = 20
+        self.HEIGHT = 13
         self.lambda_max = 5
         self.lambda_cur = 1
         self.p_cur = 0.5
+        self.show_largest = False
 
         self.N = npr.poisson(self.WIDTH * self.HEIGHT * self.lambda_max)
         self.all_particles = npr.uniform(size=(self.N, 3))
@@ -29,22 +30,27 @@ class RCM:
         self.all_particles[:, 0] *= self.WIDTH
         self.all_particles[:, 1] *= self.HEIGHT
         self.all_particles[:, 2] *= self.lambda_max
-        self.all_particles = np.concatenate(
-            (self.all_particles, np.array(range(self.N)).reshape((self.N, 1))), axis=-1
-        )
+
+        # We sort by intensity (this will help with loop breaking)
+        self.all_particles = self.all_particles[self.all_particles[:, 2].argsort()]
 
         self.hash_mat = [
             [[] for j in range(int(self.HEIGHT) + 1)]
             for i in range(int(self.WIDTH) + 1)
         ]
 
-        for x in self.all_particles:
-            for (i, j) in product([-1, 0, 1], [-1, 0, 1]):
-                self.hash_mat[int(x[0]) + i][int(x[1]) + j].append(x)
+        for i, x in enumerate(self.all_particles):
+            self.hash_mat[int(x[0])][int(x[1])].append((i, x))
 
         self.connection_matrix = npr.random(size=(self.N, self.N))
 
-        print(self.N)
+        self.current_connection = np.zeros_like(self.connection_matrix)
+        for idx, x in enumerate(all_particles):
+            if x[-1] > self.lambda_cur:
+                break
+            for idy, y in self.get_hash_nbhd((int(x[0]), int(x[1]))):
+                if y[-1] > x[-1]
+
 
     @property
     def get_lambda_simp(self):
@@ -58,6 +64,14 @@ class RCM:
         """Updates lambda based on given value"""
         if new_lambda is not None:
             self.lambda_cur = new_lambda
+
+    def get_hash_nbhd(self, hk):
+        nbhd = []
+        for i in [-1, 0, 1]:
+            for j in [-1, 0, 1]:
+                if 0 <= hk[0] + i < self.WIDTH and 0 <= hk[1] + j < self.HEIGHT:
+                    nbhd = nbhd + self.hash_mat[(hk[0] + i)][(hk[1] + j)]
+        return nbhd
 
     def update_p(self, new_p):
         """Updates p based on given value"""
@@ -76,18 +90,14 @@ class RCM:
         self.all_particles[:, 0] *= self.WIDTH
         self.all_particles[:, 1] *= self.HEIGHT
         self.all_particles[:, 2] *= self.lambda_max
-        self.all_particles = np.concatenate(
-            (self.all_particles, np.array(range(self.N)).reshape((self.N, 1))), axis=-1
-        )
+        self.all_particles = self.all_particles[self.all_particles[:, 2].argsort()]
 
         self.hash_mat = [
             [[] for j in range(int(self.HEIGHT) + 1)]
             for i in range(int(self.WIDTH) + 1)
         ]
-
-        for x in self.all_particles:
-            for (i, j) in product([-1, 0, 1], [-1, 0, 1]):
-                self.hash_mat[int(x[0]) + i][int(x[1]) + j].append(x)
+        for i, x in enumerate(self.all_particles):
+            self.hash_mat[int(x[0])][int(x[1])].append((i, x))
 
         self.connection_matrix = npr.random(size=(self.N, self.N))
 
@@ -105,14 +115,14 @@ class RCM:
                 for i in range(int(self.WIDTH) + 1)
             ]
 
-            for x in self.all_particles:
-                for (i, j) in product([-1, 0, 1], [-1, 0, 1]):
-                    self.hash_mat[int(x[0]) + i][int(x[1]) + j].append(x)
+            for i, x in enumerate(self.all_particles):
+                self.hash_mat[int(x[0])][int(x[1])].append((i, x))
 
     def draw(self):
         """Draws rcm to `self.screen`"""
-        lambda_cut_ind = np.where(self.all_particles[:, 2] < self.lambda_cur)
-        for x in self.all_particles[lambda_cut_ind]:
+        for idx, x in enumerate(self.all_particles):
+            if x[-1] > self.lambda_cur:
+                break
             pygame.draw.circle(
                 self.screen,
                 blue,
@@ -122,12 +132,12 @@ class RCM:
                 ),
                 5,
             )
-            for y in self.hash_mat[int(x[0])][int(x[1])]:
+            for idy, y in self.get_hash_nbhd((int(x[0]), int(x[1]))):
+                if y[-1] > x[-1]:
+                    continue
                 if (
-                    x[3] > y[3]
-                    and y[2] < self.lambda_cur
-                    and np.linalg.norm(x[:2] - y[:2]) <= 1
-                    and self.connection_matrix[int(x[3]), int(y[3])] < self.p_cur
+                    np.linalg.norm(x[:2] - y[:2]) <= 1
+                    and self.connection_matrix[idx, idy] < self.p_cur
                 ):
                     pygame.draw.line(
                         self.screen,

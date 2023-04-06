@@ -16,8 +16,8 @@ grey = pygame.Color(125, 125, 125)
 
 if __name__ == "__main__":
 
-    if not os.path.exists('pics'):
-        os.mkdir('pics')
+    if not os.path.exists("pics"):
+        os.mkdir("pics")
 
     pygame.display.init()
     disp_size = (1280, 720)
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     helvetica_path = pygame.font.match_font("helvetica")
     font = pygame.font.Font(helvetica_path, 14)
 
-    my_rcm = rcm.RCM(250, 50, 60)
+    my_rcm = rcm.RCM(250, 50, 40)
     my_rcm.screen = screen
 
     lambda_slider = slider.VerticalSlider((0, my_rcm.lambda_max), 300, (50, 50))
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         lambda_slider.draw()
         p_slider.draw()
         my_rcm.draw()
-        
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 RUNNING = False
@@ -84,6 +84,8 @@ if __name__ == "__main__":
                     my_rcm.reshuffle_edges()
                 if event.key == pygame.K_t:
                     my_rcm.reshuffle_all()
+                if event.key == pygame.K_l:
+                    my_rcm.show_largest = not my_rcm.show_largest
 
         pygame.display.update()
         pygame.event.clear()
